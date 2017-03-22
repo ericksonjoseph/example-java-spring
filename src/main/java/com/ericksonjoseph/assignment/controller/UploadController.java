@@ -32,6 +32,7 @@ public class UploadController {
     private final VideoValidationService videoValidationService;
 
     private String uploadDir;
+    private String path;
 
     @Autowired
     public UploadController(StorageService storageService, VideoValidationService videoValidationService) {
@@ -58,15 +59,18 @@ public class UploadController {
             RedirectAttributes redirectAttributes,
             HttpServletRequest request) throws IOException {
 
-        String response = "You successfully uploaded " + file.getOriginalFilename();
+        String response = "You successfully uploaded " + file.getOriginalFilename() + ". A backup has been created in S3";
         String videoInfo = "";
-        String path = this.uploadDir + file.getOriginalFilename();
 
         try {
             // Upload the video
-            storageService.store(file);
+            path = storageService.store(file);
+
             //Validate video
             videoInfo = videoValidationService.validate(path);
+
+            // Upload to S3 @TODO New Thread
+            storageService.backup(path);
 
         } catch (StorageException e) {
             response = "Failed to upload a file";
