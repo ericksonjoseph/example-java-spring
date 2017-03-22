@@ -3,8 +3,15 @@
 # Features
 Uses an in memory database for portability and easy testing.
 Docker image available in case durability is the priority.
+Automatically backs up all uploads to a configurable S3 bucket.
 
 # Usage
+* Make sure you have a default profile in your ~/.aws/credentials file. i.e:
+```
+[default]
+aws_access_key_id = "ACCESS-KEY-ID"
+aws_secret_access_key = "SECRET-ACCESS-KEY"
+```
 * Run: `make run`
 * navigate to localhost:8080
 * username & password = root
