@@ -4,7 +4,9 @@ package com.ericksonjoseph.assignment.controller;
 import com.ericksonjoseph.assignment.fs.StorageFileNotFoundException;
 import com.ericksonjoseph.assignment.fs.StorageService;
 import com.ericksonjoseph.assignment.video.VideoValidationService;
+import com.ericksonjoseph.assignment.video.VideoTranscoderService;
 import com.ericksonjoseph.assignment.video.VideoValidationException;
+import com.ericksonjoseph.assignment.video.VideoTranscoderException;
 import com.ericksonjoseph.assignment.fs.StorageException;
 import com.ericksonjoseph.assignment.config.Config;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -30,14 +32,14 @@ public class UploadController {
 
     private final StorageService storageService;
     private final VideoValidationService videoValidationService;
+    private final VideoTranscoderService videoTranscoderService;
 
-    private String uploadDir;
     private String path;
 
     @Autowired
-    public UploadController(StorageService storageService, VideoValidationService videoValidationService) {
-        this.uploadDir = Config.get("app.video.uploadDir");
+    public UploadController(StorageService storageService, VideoValidationService videoValidationService, VideoTranscoderService videoTranscoderService) {
         this.storageService = storageService;
+        this.videoTranscoderService = videoTranscoderService;
         this.videoValidationService = videoValidationService
             .setMaxDuration(Config.getFloat("app.video.max-duration"))
             .setFormat(Config.get("app.video.required-format"));
@@ -59,7 +61,9 @@ public class UploadController {
             RedirectAttributes redirectAttributes,
             HttpServletRequest request) throws IOException {
 
-        String response = "You successfully uploaded " + file.getOriginalFilename() + ". A backup has been created in S3";
+        String response = "You successfully uploaded " + file.getOriginalFilename()
+            + ". A backup has been created in S3"
+            + ". Transcoding complete.";
         String videoInfo = "";
 
         try {
@@ -69,8 +73,11 @@ public class UploadController {
             //Validate video
             videoInfo = videoValidationService.validate(path);
 
-            // Upload to S3 @TODO New Thread
+            // Upload to S3 @TODO Multithread
             storageService.backup(path);
+
+            //Transcode video
+            videoTranscoderService.transcode(path);
 
         } catch (StorageException e) {
             response = "Failed to upload a file";
@@ -78,6 +85,9 @@ public class UploadController {
         } catch (VideoValidationException o) {
             response = "Failed to validate the video file. Error: " + o.getMessage();
             Files.delete(Paths.get(path));
+
+        } catch (VideoTranscoderException o) {
+            response = "Failed to transcode the video file. Error: " + o.getMessage();
         }
 
         redirectAttributes.addFlashAttribute("message", response);

@@ -3,7 +3,8 @@
 # Features
 Uses an in memory database for portability and easy testing.
 Docker image available in case durability is the priority.
-Automatically backs up all uploads to a configurable S3 bucket.
+Automatically backs up all uploads to a configurable S3 bucket!
+Automatically transcodes all uploads using the VP9 codec!
 
 # Usage
 * Make sure you have a default profile in your ~/.aws/credentials file. i.e:
@@ -36,8 +37,9 @@ If you have docker installed and want to persist the data:
 - Provide your db settings: `vim src/main/resources/application.properties`
 
 # Assumptions
-Assuming the system has maven 3 and java 8 installed
-Assuming the system has ffprobe installed at /usr/local/bin/ffprobe
-Assuming the file upload will not exceed 10GB
-Assuming that chef templates will remove the hardcoded and sensitive values in the config at deployment
+- Assuming the system has maven 3 and java 8 installed
+- Assuming the system has ffprobe installed at /usr/local/bin/ffprobe
+- Assuming the file upload will not exceed 10GB
+- Assuming that chef templates will remove the hardcoded and sensitive values in the config at deployment
+- Assuming the aws user profile has sufficient permissions to upload to the configured S3 bucket
 
